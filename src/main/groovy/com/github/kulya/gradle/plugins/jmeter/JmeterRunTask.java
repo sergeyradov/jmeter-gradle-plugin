@@ -1,6 +1,7 @@
 package com.github.kulya.gradle.plugins.jmeter;
 
 import com.github.kulya.gradle.plugins.jmeter.worker.JMeterRunner;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.GradleException;
@@ -53,6 +54,14 @@ public class JmeterRunTask extends JmeterAbstractTask {
     private Boolean enableReports = null;
 
     /**
+     * Whether or not to generate extended reports after measurement.
+     * <p/>
+     * By default true
+     */
+    private Boolean enableExtendedReports = null;
+
+
+    /**
      * Use remote JMeter installation to run tests
      * <p/>
      * By default false
@@ -80,7 +89,7 @@ public class JmeterRunTask extends JmeterAbstractTask {
      */
     private String reportPostfix;
 
-     /**
+    /**
      * Custom Xslt which is used to create the report.
      */
     private File reportXslt;
@@ -114,8 +123,10 @@ public class JmeterRunTask extends JmeterAbstractTask {
         if (this.enableReports) {
             makeReport(results);
         }
+        if (this.enableExtendedReports) {
+            makeExtendedReport(results);
+        }
         checkForErrors(results);
-
     }
 
 
@@ -128,6 +139,7 @@ public class JmeterRunTask extends JmeterAbstractTask {
         reportDir = getReportDir();
         remote = getRemote();
         enableReports = getEnableReports();
+        enableExtendedReports = getEnableExtendedReports();
         reportPostfix = getReportPostfix();
         reportXslt = getReportXslt();
         includes = getIncludes();
@@ -135,7 +147,7 @@ public class JmeterRunTask extends JmeterAbstractTask {
         maxHeapSize = getMaxHeapSize();
     }
 
-     private void checkForErrors(List<String> results) {
+    private void checkForErrors(List<String> results) {
         ErrorScanner scanner = new ErrorScanner(this.jmeterIgnoreError, this.jmeterIgnoreFailure);
         try {
             for (String file : results) {
@@ -147,6 +159,24 @@ public class JmeterRunTask extends JmeterAbstractTask {
             throw new GradleException("Can't read log file", e);
         }
     }
+
+    private void makeExtendedReport(List<String> results) throws IOException {
+        String jMeterHome = getWorkDir().getAbsolutePath();
+        JmeterSpecs specs = new JmeterSpecs();
+        specs.getSystemProperties().put("jmeter.home", jMeterHome);
+        specs.getSystemProperties().put("jmeter.properties", getJmeterPropertyFile().getCanonicalPath());
+        specs.getSystemProperties().put("saveservice_properties", System.getProperty("saveservice_properties"));
+        specs.setMaxHeapSize(maxHeapSize);
+        for (String resultFile : results) {
+            try {
+                specs.setJmeterProperties(Arrays.asList(resultFile));
+                new JMeterRunner().executeCreateReport(specs, jMeterHome);
+            } catch (Throwable e) {
+                log.error("Failed to create extended report for " + resultFile, e);
+            }
+        }
+    }
+
 
     private void makeReport(List<String> results) {
         try {
@@ -167,7 +197,7 @@ public class JmeterRunTask extends JmeterAbstractTask {
         } catch (IOException e) {
             log.error("Can't transfrorm result", e);
             throw new GradleException("Error copying resources to jmeter results", e);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("Can't transfrorm result", e);
         }
     }
@@ -185,7 +215,7 @@ public class JmeterRunTask extends JmeterAbstractTask {
         }
     }
 
-     private String toOutputFileName(String fileName) {
+    private String toOutputFileName(String fileName) {
         if (fileName.endsWith(".xml")) {
             return fileName.replace(".xml", this.reportPostfix);
         } else {
@@ -199,18 +229,15 @@ public class JmeterRunTask extends JmeterAbstractTask {
             File resultFile = new File(reportDir, testFile.getName() + "-" + fmt.format(new Date()) + ".xml");
             resultFile.delete();
             List<String> args = new ArrayList<String>();
-             args.addAll(Arrays.asList("-n",
-                     "-t", testFile.getCanonicalPath(),
-                     "-l", resultFile.getCanonicalPath(),
-                     "-p", getJmeterPropertyFile().getCanonicalPath()));
+            args.addAll(Arrays.asList("-n",
+                    "-t", testFile.getCanonicalPath(),
+                    "-l", resultFile.getCanonicalPath(),
+                    "-p", getJmeterPropertyFile().getCanonicalPath()));
 
 
-            if(jmeterUserPropertiesFiles!=null)
-            {
-                for(File userPropertyFile: jmeterUserPropertiesFiles)
-                {
-                    if(userPropertyFile.exists() && userPropertyFile.isFile())
-                    {
+            if (jmeterUserPropertiesFiles != null) {
+                for (File userPropertyFile : jmeterUserPropertiesFiles) {
+                    if (userPropertyFile.exists() && userPropertyFile.isFile()) {
                         args.addAll(Arrays.asList("-S", userPropertyFile.getCanonicalPath()));
                     }
                 }
@@ -291,6 +318,14 @@ public class JmeterRunTask extends JmeterAbstractTask {
 
     public void setEnableReports(Boolean enableReports) {
         this.enableReports = enableReports;
+    }
+
+    public boolean getEnableExtendedReports() {
+        return enableExtendedReports;
+    }
+
+    public void setEnableExtendedReports(Boolean enableExtenededReports) {
+        this.enableExtendedReports = enableExtenededReports;
     }
 
     public Boolean getRemote() {

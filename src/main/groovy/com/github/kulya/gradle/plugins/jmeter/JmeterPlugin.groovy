@@ -100,6 +100,12 @@ public class JmeterPlugin implements Plugin<Project> {
             }
         });
 
+        jmeterRunTask.getConventionMapping().map("enableExtendedReports", new Callable<Object>() {
+            public Object call() throws Exception {
+                return jmeterConvention.getEnableExtendedReports();
+            }
+        });
+
         jmeterRunTask.getConventionMapping().map("remote", new Callable<Object>() {
             public Object call() throws Exception {
                 return jmeterConvention.getRemote();

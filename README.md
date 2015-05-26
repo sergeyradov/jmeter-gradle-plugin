@@ -47,6 +47,19 @@ If it is 1.3.1 and above
 * jmeterTestFiles - List of JMeter test files (overrides srcDir)
 * reportDir - Directory where you want to store your reports [ $project.buildDir/jmeter-report by default ]
 * enableReports - Enable/Disable report generation [ true by default ]
+* enableExtendedReports - Enable/Disable extended report generation [ false by default ]. This creates the following
+  reports (a graph and csv file):
+     - ResponseTimesOverTime
+     - HitsPerSecond
+     - BytesThroughputOverTime
+     - LatenciesOverTime
+     - ResponseCodesPerSecond
+     - TransactionsPerSecond
+     - ResponseTimesDistribution
+     - ResponseTimesPercentiles
+     - ThreadsStateOverTime
+     - TimesVsThreads
+     - ThroughputVsThreads
 * jmeterIgnoreFailure - Ignore JMeter failures  [ false by default ]
 * jmeterIgnoreError - Ignore JMeter errors [ false by default ]
 * reportPostfix - Postfix that you want to use at report file  [ "-report.html" by default ]
@@ -59,7 +72,7 @@ If it is 1.3.1 and above
 * jmeterUserPropertiesFiles - List of user properties files
 
 4) To run JMeter test execute
-    
+
     gradle jmeterRun
 
 At project directory

@@ -3,6 +3,8 @@ package com.github.kulya.gradle.plugins.jmeter;
 import org.gradle.api.Project;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class JmeterPluginConvention {
@@ -51,6 +53,14 @@ public class JmeterPluginConvention {
     private Boolean enableReports = true;
 
     /**
+     * Whether or not to generate extended reports after measurement.
+     * <p/>
+     * By default false
+     */
+    private Boolean enableExtendedReports = false;
+
+
+    /**
      * Use remote JMeter installation to run tests
      * <p/>
      * By default false
@@ -85,7 +95,7 @@ public class JmeterPluginConvention {
 
     private List<String> jmeterUserProperties;
 
-    private List<String> jmeterPluginJars;
+    private List<String> jmeterPluginJars = pluginList();
 
     private File jmeterPropertyFile;
 
@@ -161,6 +171,14 @@ public class JmeterPluginConvention {
         this.enableReports = enableReports;
     }
 
+    public boolean getEnableExtendedReports() {
+        return enableExtendedReports;
+    }
+
+    public void setEnableExtendedReports(Boolean enableExtenededReports) {
+        this.enableExtendedReports = enableExtenededReports;
+    }
+
     public Boolean getRemote() {
         return remote;
     }
@@ -208,13 +226,15 @@ public class JmeterPluginConvention {
     public void setJmeterUserProperties(List<String> jmeterUserProperties) {
         this.jmeterUserProperties = jmeterUserProperties;
     }
-    
+
     public List<String> getJmeterPluginJars() {
         return jmeterPluginJars;
     }
-    
+
     public void setJmeterPluginJars(List<String> jmeterPluginJars) {
-        this.jmeterPluginJars = jmeterPluginJars;
+
+        this.jmeterPluginJars = pluginList();
+        this.jmeterPluginJars.addAll(jmeterPluginJars);
     }
 
     public File getJmeterPropertyFile() {
@@ -247,6 +267,17 @@ public class JmeterPluginConvention {
 
     public void setJmeterUserPropertiesFiles(List<File> jmeterUserPropertiesFiles) {
         this.jmeterUserPropertiesFiles = jmeterUserPropertiesFiles;
+    }
+
+    private List<String> pluginList() {
+        // These come from the build.gradle
+        return new ArrayList<String>
+                (Arrays.asList(
+                "jmeter-plugins-1.2.1.jar",
+                "jmeter-plugins-standard-1.2.1.jar",
+                "jmeter-plugins-common-1.2.1.jar",
+                "jmeter-plugins-extras-1.2.1.jar"));
+
     }
 }
 

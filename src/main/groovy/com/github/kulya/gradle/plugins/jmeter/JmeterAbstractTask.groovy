@@ -7,14 +7,13 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.TaskAction
 
-abstract class JmeterAbstractTask extends ConventionTask{
+abstract class JmeterAbstractTask extends ConventionTask {
 
     protected final Logger log = Logging.getLogger(getClass());
 
     private String jmeterVersion;
 
-    private List<String> jmeterPluginJars;
-
+    private List<String> jmeterPluginJars = pluginList();
     private File workDir;
 
     private File jmeterLog;
@@ -57,6 +56,17 @@ abstract class JmeterAbstractTask extends ConventionTask{
 
         def jmeterExtFolder = new File(workDir, "lib" + File.separator + "ext")
         jmeterExtFolder.mkdirs()
+    }
+
+    private List<String> pluginList() {
+        // These come from the build.gradle
+        // These come from the build.gradle
+        return new ArrayList<String>
+                (Arrays.asList(
+                        "jmeter-plugins-1.2.1.jar",
+                        "jmeter-plugins-standard-1.2.1.jar",
+                        "jmeter-plugins-common-1.2.1.jar",
+                        "jmeter-plugins-extras-1.2.1.jar"));
     }
 
     protected void loadPropertiesFromConvention() {
@@ -104,9 +114,10 @@ abstract class JmeterAbstractTask extends ConventionTask{
 
     protected void resolveJmeterSearchPath() {
         StringBuilder cp = new StringBuilder()
-        URL[] classPath = ((URLClassLoader)this.getClass().getClassLoader()).getURLs()
+        URL[] classPath = ((URLClassLoader) this.getClass().getClassLoader()).getURLs()
         String jmeterVersionPattern = getJmeterVersion().replaceAll("[.]", "[.]")
-        String pathSeparator = /**System.getProperty("path.separator")*/";"
+        String pathSeparator = /**System.getProperty("path.separator")*/
+                ";"
         for (URL dep : classPath) {
             if (dep.getPath().matches("^.*org[./]apache[./]jmeter[/]ApacheJMeter.*" +
                     jmeterVersionPattern + ".jar\$")) {
@@ -115,9 +126,9 @@ abstract class JmeterAbstractTask extends ConventionTask{
             } else if (dep.getPath().matches("^.*bsh.*[.]jar\$")) {
                 cp.append(dep.getPath())
                 cp.append(pathSeparator)
-            } else if (jmeterPluginJars != null){
-                for (String plugin: jmeterPluginJars) {
-                    if(dep.getPath().matches("^.*" + plugin + "\$")) {
+            } else if (jmeterPluginJars != null) {
+                for (String plugin : jmeterPluginJars) {
+                    if (dep.getPath().matches("^.*" + plugin + "\$")) {
                         cp.append(dep.getPath())
                         cp.append(pathSeparator)
                     }
@@ -156,7 +167,7 @@ abstract class JmeterAbstractTask extends ConventionTask{
 
     protected void initUserProperties(List<String> jmeterArgs) {
         if (jmeterUserProperties != null) {
-            jmeterUserProperties.each {property -> jmeterArgs.add("-J" + property)}
+            jmeterUserProperties.each { property -> jmeterArgs.add("-J" + property) }
         }
     }
 
@@ -173,7 +184,8 @@ abstract class JmeterAbstractTask extends ConventionTask{
     }
 
     void setJmeterPluginJars(List<String> jmeterPluginJars) {
-        this.jmeterPluginJars = jmeterPluginJars
+        this.jmeterPluginJars = pluginList();
+        this.jmeterPluginJars.addAll(jmeterPluginJars);
     }
 
     File getWorkDir() {
@@ -207,7 +219,6 @@ abstract class JmeterAbstractTask extends ConventionTask{
     void setSrcDir(File srcDir) {
         this.srcDir = srcDir
         if (!propertyFileChanged) {
-            System.out.println("Here " + this.getClass().getName());
             setJmeterPropertyFile(new File(srcDir, JmeterPluginConvention.JMETER_DEFAULT_PROPERTY_NAME));
         }
     }

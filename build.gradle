@@ -10,9 +10,9 @@ archivesBaseName = 'jmeter-gradle-plugin'
  */
 ext.jmeterVersion = "2.13"
 ext.hash = 'git rev-parse --short HEAD'.execute().text.trim()
-ext.buildNumber = System.getenv("TRAVIS_BUILD_NUMBER") ?: "dev"
+ext.buildNumber = System.getenv("BUILD_NUMBER") ?: "dev"
 ext.majorMinorPatchVersion = "1.4.0"
-version = "${majorMinorPatchVersion}+$buildNumber.$hash.${jmeterVersion}".toString()
+version = "${majorMinorPatchVersion}+$buildNumber.$hash.${jmeterVersion}.lookout".toString()
 
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
